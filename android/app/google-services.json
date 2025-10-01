@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "452412802465",
+    "project_id": "agi-expert-68907",
+    "storage_bucket": "agi-expert-68907.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:452412802465:android:8ef92c570828a9239677e0",
+        "android_client_info": {
+          "package_name": "com.example.agri_expert"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAM7_eYAtc4hb1I47BS7S9OUOsCieczPB0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
