@@ -1,11 +1,58 @@
-import 'package:agri_expert/BottomNavigationBarView/BottomNavigationBarView.dart';
-import 'package:agri_expert/auth/forgot_password_screen.dart';
-import 'package:agri_expert/auth/sign_up_view.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../provider/user_provider.dart';
+import 'forgot_password_screen.dart';
+import 'sign_up_view.dart';
+import '../BottomNavigationBarView/BottomNavigationBarView.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _loading = false;
+
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showMessage("Please enter email & password");
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+    });
+
+    try {
+      await Provider.of<UserProvider>(context, listen: false).login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Navigate to main app screen after login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const TabBarNavigationView()),
+      );
+    } catch (e) {
+      _showMessage(e.toString());
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  void _showMessage(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,17 +61,14 @@ class LoginScreen extends StatelessWidget {
       body: SafeArea(
         child: Stack(
           children: [
-            // Top Image
             SizedBox(
               height: 483,
               width: double.infinity,
               child: Image.asset(
-                "assets/images/Rectangle 9 (1).png", // replace with your asset
+                "assets/images/Rectangle 9 (1).png",
                 fit: BoxFit.cover,
               ),
             ),
-
-            // Foreground Content
             SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.only(top: 250),
@@ -37,12 +81,11 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 32),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 32),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Title
                         Text(
                           "Welcome Again!",
                           style: GoogleFonts.raleway(
@@ -62,15 +105,11 @@ class LoginScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 30),
 
-                        // Email Field
-                        _buildTextField("Email", false),
+                        _buildTextField("Email", false, _emailController),
+                        const SizedBox(height: 20),
+                        _buildTextField("Password", true, _passwordController),
                         const SizedBox(height: 20),
 
-                        // Password Field
-                        _buildTextField("Password", true),
-                        const SizedBox(height: 20),
-
-                        // Forgot Password
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
@@ -78,14 +117,9 @@ class LoginScreen extends StatelessWidget {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        ForgotPasswordScreen(),
+                                    builder: (_) => const ForgotPasswordScreen(),
                                   ));
                             },
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: const Size(0, 0),
-                            ),
                             child: Text(
                               "Forgot Password?",
                               style: GoogleFonts.raleway(
@@ -98,7 +132,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
 
-                        // Login Button
                         SizedBox(
                           width: double.infinity,
                           height: 50,
@@ -109,15 +142,12 @@ class LoginScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        TabBarNavigationView(),
-                                  ));
-                            },
-                            child: Text(
+                            onPressed: _loading ? null : _login,
+                            child: _loading
+                                ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                                : Text(
                               "Login",
                               style: GoogleFonts.raleway(
                                 color: Colors.white,
@@ -129,7 +159,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 23),
 
-                        // Sign Up Link
                         Text(
                           "Don’t have an account?",
                           style: GoogleFonts.raleway(
@@ -144,7 +173,7 @@ class LoginScreen extends StatelessWidget {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => SignUpScreen(),
+                                  builder: (_) => const SignUpScreen(),
                                 ));
                           },
                           child: Text(
@@ -168,8 +197,10 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, bool isPassword) {
+  Widget _buildTextField(
+      String label, bool isPassword, TextEditingController controller) {
     return TextField(
+      controller: controller,
       obscureText: isPassword,
       style: GoogleFonts.raleway(
         fontWeight: FontWeight.w500,

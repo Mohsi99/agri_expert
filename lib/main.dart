@@ -1,7 +1,9 @@
 import 'package:agri_expert/home/home_view.dart';
+import 'package:agri_expert/provider/user_provider.dart';
 import 'package:agri_expert/splash_view.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'BottomNavigationBarView/BottomNavigationBarView.dart';
 import 'auth/personal_details_view.dart';
@@ -21,11 +23,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme:
-          ThemeData(bottomNavigationBarTheme: BottomNavigationBarThemeData()),
-      home: SplashScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(),
+        ),
+        home: const SplashScreen(),
+      ),
     );
   }
 }
