@@ -3,12 +3,30 @@ import 'package:agri_expert/profile/ratings_reviews_view.dart';
 import 'package:agri_expert/profile/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../provider/user_provider.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
+  ImageProvider getImageProvider(String? path) {
+    if (path == null || path.isEmpty) {
+      return const AssetImage("assets/images/Ellipse 7.png");
+    } else if (path.startsWith("http")) {
+      return NetworkImage(path);
+    } else if (path.contains("user_images")) {
+      final url = "https://YOUR-SUPABASE-PROJECT-ID.supabase.co/storage/v1/object/public/$path";
+      return NetworkImage(url);
+    } else {
+      return const AssetImage("assets/images/Ellipse 7.png");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
+
     final List<ReviewModel> reviews = [
       ReviewModel(
         name: "Fareeha Sadaqat",
@@ -31,70 +49,47 @@ class ProfileView extends StatelessWidget {
         timeAgo: "Yesterday",
         profileImage: "assets/images/Ellipse 7.png",
       ),
-      ReviewModel(
-        name: "Muhammad Ali",
-        review: "Very patient. Totally Recommended Expert.",
-        stars: 3,
-        timeAgo: "Yesterday",
-        profileImage: "assets/images/Ellipse 7 (1).png",
-      ),
-      ReviewModel(
-        name: "Muhammad Ali",
-        review: "Recommended Expert.",
-        stars: 2,
-        timeAgo: "Yesterday",
-        profileImage: "assets/images/Ellipse 7.png",
-      ),
-      ReviewModel(
-        name: "Muhammad Ali",
-        review: "Very patient. Totally Recommended Expert.",
-        stars: 1,
-        timeAgo: "Yesterday",
-        profileImage: "assets/images/Ellipse 7.png",
-      ),
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFFFFFF),
+        backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(
-          "Profile",
-          style: GoogleFonts.raleway(
-            fontSize: 23,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF292929),
-          ),
-        ),
+        title: Text("Profile",
+            style: GoogleFonts.raleway(
+              fontSize: 23,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF292929),
+            )),
         actions: [
           IconButton(
             onPressed: () {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SettingsView(),
-                  ));
+                      builder: (context) => const SettingsView()));
             },
-            icon: ImageIcon(AssetImage("assets/icons/carbon_settings.png"),
-                color: Color(0xff339D44)),
+            icon: const ImageIcon(
+              AssetImage("assets/icons/carbon_settings.png"),
+              color: Color(0xff339D44),
+            ),
           ),
           const SizedBox(width: 12),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            /// Profile image + Name + Email
-            const CircleAvatar(
+            CircleAvatar(
               radius: 60,
-              backgroundImage: AssetImage("assets/images/Ellipse 7.png"),
+              backgroundImage: getImageProvider(user?.profileImageUrl),
             ),
             const SizedBox(height: 12),
             Text(
-              "Muhammad Wajahat",
+              user?.name ?? "No Name",
               style: GoogleFonts.raleway(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -103,13 +98,13 @@ class ProfileView extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              "mwajahat.038@gmail.com",
+              user?.email ?? "No Email",
               style: GoogleFonts.raleway(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xff339D44)),
+                fontSize: 11,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xff339D44),
+              ),
             ),
-
             const SizedBox(height: 12),
             SizedBox(
               width: 129,
@@ -125,8 +120,7 @@ class ProfileView extends StatelessWidget {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EditProfileView(),
-                      ));
+                          builder: (context) => const EditProfileView()));
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -137,14 +131,12 @@ class ProfileView extends StatelessWidget {
                       color: Color(0xffF4F6FB),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      "Edit Profile",
-                      style: GoogleFonts.raleway(
-                        color: const Color(0xffF4F6FB),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    Text("Edit Profile",
+                        style: GoogleFonts.raleway(
+                          color: Color(0xffF4F6FB),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                        )),
                   ],
                 ),
               ),
@@ -153,29 +145,21 @@ class ProfileView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Stats",
-                  style: GoogleFonts.raleway(
-                    fontSize: 13.33,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF292929),
-                  ),
-                ),
-                Text(
-                  "See Dashboard",
-                  style: GoogleFonts.raleway(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w400,
-                    color: const Color(0xff339D44),
-                  ),
-                ),
+                Text("Stats",
+                    style: GoogleFonts.raleway(
+                      fontSize: 13.33,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF292929),
+                    )),
+                Text("See Dashboard",
+                    style: GoogleFonts.raleway(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xff339D44),
+                    )),
               ],
             ),
-            SizedBox(
-              height: 16,
-            ),
-
-            /// Stats Section
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -183,65 +167,54 @@ class ProfileView extends StatelessWidget {
                     style: GoogleFonts.raleway(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
-                      color: const Color(0xFF292929),
+                      color: Color(0xFF292929),
                     )),
                 Text("71 Pending",
                     style: GoogleFonts.raleway(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
-                      color: const Color(0xFF292929),
+                      color: Color(0xFF292929),
                     )),
                 Text("14 Videos Uploaded",
                     style: GoogleFonts.raleway(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
-                      color: const Color(0xFF292929),
+                      color: Color(0xFF292929),
                     )),
               ],
             ),
-
             const SizedBox(height: 25),
-
-            /// Ratings & Reviews Heading
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Ratings & Reviews",
-                  style: GoogleFonts.raleway(
-                    fontSize: 13.33,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF292929),
-                  ),
-                ),
+                Text("Ratings & Reviews",
+                    style: GoogleFonts.raleway(
+                      fontSize: 13.33,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF292929),
+                    )),
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            RatingsReviewsView(reviews: reviews),
-                      ),
-                    );
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                RatingsReviewsView(reviews: reviews)));
                   },
-                  child: Text(
-                    "See all",
-                    style: GoogleFonts.raleway(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xff339D44),
-                    ),
-                  ),
+                  child: Text("See all",
+                      style: GoogleFonts.raleway(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xff339D44),
+                      )),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-
-            /// Dynamic Reviews List
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: 3,
+              itemCount: reviews.length,
               itemBuilder: (context, index) {
                 final r = reviews[index];
                 return reviewTile(r);
@@ -259,63 +232,44 @@ class ProfileView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Profile picture
-          CircleAvatar(
-            radius: 20,
-            backgroundImage: AssetImage(review.profileImage),
-          ),
+          CircleAvatar(radius: 20, backgroundImage: AssetImage(review.profileImage)),
           const SizedBox(width: 10),
-
-          /// Right side content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// Name + Stars Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      review.name,
-                      style: GoogleFonts.raleway(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF292929),
-                      ),
-                    ),
+                    Text(review.name,
+                        style: GoogleFonts.raleway(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF292929),
+                        )),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: List.generate(
                         review.stars,
-                        (index) => Icon(Icons.star_border,
-                            size: 12, color: const Color(0xff339D44)),
+                            (index) => const Icon(Icons.star_border,
+                            size: 12, color: Color(0xff339D44)),
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 3),
-
-                /// Time ago
-                Text(
-                  review.timeAgo,
-                  style: GoogleFonts.raleway(
+                Text(review.timeAgo,
+                    style: GoogleFonts.raleway(
                       fontSize: 9,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xffB4B4B4)),
-                ),
-
+                      color: Color(0xFFB4B4B4),
+                    )),
                 const SizedBox(height: 10),
-
-                /// Review text
-                Text(
-                  review.review,
-                  style: GoogleFonts.raleway(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w400,
-                    color: const Color(0xFF292929),
-                  ),
-                ),
+                Text(review.review,
+                    style: GoogleFonts.raleway(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF292929),
+                    )),
               ],
             ),
           ),
@@ -325,7 +279,6 @@ class ProfileView extends StatelessWidget {
   }
 }
 
-/// Review Model Class
 class ReviewModel {
   final String name;
   final String review;

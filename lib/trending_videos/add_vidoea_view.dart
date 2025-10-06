@@ -79,10 +79,10 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 18.0),
               child: Column(
                 children: [
-                  UploadField(
+                  UploadImageField(
                       label: "Upload Video", controller: videoController),
                   const SizedBox(height: 20),
-                  UploadField(
+                  UploadImageField(
                       label: "Upload Thumbnail",
                       controller: thumbnailController),
                   const SizedBox(height: 20),

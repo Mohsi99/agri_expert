@@ -1,9 +1,9 @@
-import 'package:agri_expert/auth/login_view.dart';
 import 'package:agri_expert/auth/personal_details_view.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../provider/user_provider.dart';
+import '../models/user_model.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -16,12 +16,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-  TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
 
   bool _loading = false;
 
-  Future<void> _signUp() async {
+  Future<void> _signUp(BuildContext context) async {
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Passwords do not match")),
@@ -32,41 +31,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _loading = true);
 
     try {
-      // Create user in Firebase Auth
-      UserCredential userCred = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.signUp(
+        name: nameController.text.trim(),
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      // Save user in Firestore
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(userCred.user!.uid)
-          .set({
-        "uid": userCred.user!.uid,
-        "name": nameController.text.trim(),
-        "email": emailController.text.trim(),
-        "createdAt": FieldValue.serverTimestamp(),
-      });
-
-      // ✅ Navigate to PersonalDetailsScreen safely
-      if (mounted) {
+      UserModel? createdUser = userProvider.user;
+      if (createdUser != null && mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => PersonalDetailsScreen(uid: userCred.user!.uid),
+            builder: (_) => PersonalDetailsScreen(uid: createdUser.docId),
           ),
         );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User creation failed")),
+        );
       }
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Signup failed")),
+        SnackBar(content: Text(e.toString())),
       );
     } finally {
       setState(() => _loading = false);
     }
-  }  @override
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF4F6FB),
@@ -87,40 +81,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 child: Container(
                   decoration: const BoxDecoration(
                     color: Color(0xffF4F6FB),
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(30),
-                    ),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 45),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 45),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Create Account",
-                            style: GoogleFonts.raleway(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF292929),
-                            )),
+                        Text(
+                          "Create Account",
+                          style: GoogleFonts.raleway(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF292929),
+                          ),
+                        ),
                         const SizedBox(height: 24),
-
-                        _buildTextField("Name", false,
-                            controller: nameController),
+                        _buildTextField("Name", false, controller: nameController),
                         const SizedBox(height: 16),
-
-                        _buildTextField("Email", false,
-                            controller: emailController),
+                        _buildTextField("Email", false, controller: emailController),
                         const SizedBox(height: 16),
-
-                        _buildTextField("Password", true,
-                            controller: passwordController),
+                        _buildTextField("Password", true, controller: passwordController),
                         const SizedBox(height: 16),
-
-                        _buildTextField("Confirm Password", true,
-                            controller: confirmPasswordController),
+                        _buildTextField("Confirm Password", true, controller: confirmPasswordController),
                         const SizedBox(height: 24),
-
                         SizedBox(
                           width: double.infinity,
                           height: 50,
@@ -131,10 +115,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            onPressed: _loading ? null : _signUp,
+                            onPressed: _loading ? null : () => _signUp(context),
                             child: _loading
-                                ? const CircularProgressIndicator(
-                                color: Colors.white)
+                                ? const CircularProgressIndicator(color: Colors.white)
                                 : Text(
                               "Next",
                               style: GoogleFonts.raleway(
@@ -144,23 +127,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 23),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
-                              ),
-                            );
-                          },
-                          child: Text("Login",
-                              style: GoogleFonts.raleway(
-                                fontSize: 27,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF339D44),
-                              )),
                         ),
                       ],
                     ),
@@ -179,9 +145,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return TextField(
       controller: controller,
       obscureText: isPassword,
+      style: GoogleFonts.raleway(
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+        color: const Color(0xFF292929),
+      ),
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        labelStyle: GoogleFonts.raleway(
+          color: const Color(0xFFB4B4B4),
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+        ),
+        border: OutlineInputBorder(
+          borderSide: const BorderSide(width: 1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Color(0xFFB4B4B4)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Color(0xFF339D44)),
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
     );
   }
