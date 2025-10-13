@@ -1,22 +1,47 @@
 import 'package:agri_expert/trending_videos/comment_view.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 
-class VideoCard extends StatelessWidget {
-  final String title;
-  final String thumbnail;
-  final String uploadedDate;
-  final String views;
-  final String comments;
+import '../../models/video_model.dart';
+
+class VideoCard extends StatefulWidget {
+  final VideoModel video;
 
   const VideoCard({
     super.key,
-    required this.title,
-    required this.thumbnail,
-    required this.uploadedDate,
-    required this.views,
-    required this.comments,
+    required this.video,
   });
+
+  @override
+  State<VideoCard> createState() => _VideoCardState();
+}
+
+class _VideoCardState extends State<VideoCard> {
+  late VideoPlayerController _videoController;
+  late ChewieController _chewieController;
+
+  @override
+  void initState() {
+    _videoController =
+        VideoPlayerController.networkUrl(Uri.parse(widget.video.videoUrl))
+          ..initialize().then((_) {
+            _chewieController = ChewieController(
+              videoPlayerController: _videoController,
+              autoPlay: false,
+              looping: false,
+            );
+            setState(() {});
+          });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _videoController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +56,7 @@ class VideoCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  title,
+                  widget.video.title,
                   style: GoogleFonts.raleway(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -49,10 +74,9 @@ class VideoCard extends StatelessWidget {
           ),
         ),
 
-
         /// Uploaded Date
         Text(
-          "Upload Date: $uploadedDate",
+          "Upload Date: 232",
           style: GoogleFonts.raleway(
             fontSize: 12,
             color: Colors.grey.shade600,
@@ -62,14 +86,17 @@ class VideoCard extends StatelessWidget {
         const SizedBox(height: 14),
 
         /// Thumbnail
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Image.asset(
-            thumbnail,
-            height: 180,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
+        Center(
+          child: _videoController.value.isInitialized
+              ? AspectRatio(
+                  aspectRatio: _videoController.value.aspectRatio,
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child:  Chewie(controller: _chewieController),),
+                )
+              : SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator())),
         ),
 
         const SizedBox(height: 13),
@@ -86,7 +113,7 @@ class VideoCard extends StatelessWidget {
                     color: Color(0xffB4B4B4)),
                 const SizedBox(width: 4),
                 Text(
-                  "$views Views",
+                  "0 Views",
                   style: GoogleFonts.raleway(
                     fontSize: 9,
                     fontWeight: FontWeight.w400,
@@ -104,7 +131,8 @@ class VideoCard extends StatelessWidget {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CommentsView(videoTitle: title),
+                      builder: (context) =>
+                          CommentsView(videoTitle: widget.video.title),
                     ));
               },
               child: Row(
@@ -113,7 +141,7 @@ class VideoCard extends StatelessWidget {
                       size: 18, color: Color(0xffB4B4B4)),
                   const SizedBox(width: 4),
                   Text(
-                    "$comments Comments",
+                    "0 Comments",
                     style: GoogleFonts.raleway(
                       fontSize: 9,
                       fontWeight: FontWeight.w400,

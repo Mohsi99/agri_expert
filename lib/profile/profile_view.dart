@@ -55,6 +55,7 @@ class ProfileView extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
         elevation: 0,
         title: Text("Profile",
             style: GoogleFonts.raleway(

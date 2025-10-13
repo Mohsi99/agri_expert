@@ -1,5 +1,6 @@
 import 'package:agri_expert/home/home_view.dart';
 import 'package:agri_expert/provider/user_provider.dart';
+import 'package:agri_expert/provider/video_provider.dart';
 import 'package:agri_expert/splash_view.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,8 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => VideoProvider()),
+
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

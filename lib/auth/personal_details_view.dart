@@ -1,3 +1,4 @@
+import 'package:agri_expert/auth/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -186,19 +187,70 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: const Text("Profile Updated"),
-        content: const Text("Your profile details were saved successfully."),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to ProfileView
-            },
-            child: const Text("OK"),
+      builder: (_) => Dialog(
+        backgroundColor: const Color(0xffFFFFFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                "assets/icons/ic_baseline-done-all.png",
+                height: 48,
+                color: const Color(0xFF339D44),
+              ),
+              const SizedBox(height: 34),
+              Text(
+                "Account Created",
+                style: GoogleFonts.raleway(
+                  fontSize: 23.33,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF292929),
+                ),
+              ),
+              const SizedBox(height: 9),
+              Text(
+                "You can now access your account",
+                style: GoogleFonts.raleway(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFFB4B4B4),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF339D44),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context); // Close dialog
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen(),));
+                    // OR use:
+                    // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginView()));
+                  },
+                  child: Text(
+                    "Login",
+                    style: GoogleFonts.raleway(
+                      color: const Color(0xffF4F6FB),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
-  }
-}
+  }}

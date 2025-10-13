@@ -1,10 +1,11 @@
-import 'package:agri_expert/questions/widgets/Custom%20TabBar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
+import '../models/video_model.dart';
+import '../services/video_service.dart';
 import 'Widget/video_card.dart';
-import 'comment_view.dart';
 
 class TrendingVideosSearchScreen extends StatefulWidget {
   const TrendingVideosSearchScreen({super.key});
@@ -16,42 +17,28 @@ class TrendingVideosSearchScreen extends StatefulWidget {
 class _TrendingVideosSearchScreenState extends State<TrendingVideosSearchScreen> {
   int selectedTab = 0;
   final TextEditingController _searchController = TextEditingController();
-  String query = "";
+  final VideoService _videoService = VideoService();
+  String _searchQuery = "";
 
   final List<String> tabs = ["All", "Recently Uploaded"];
 
-  final List<TrendingVideo> videos = [
-    TrendingVideo(
-      title: "How to Start A Tractor",
-      thumbnail: "assets/images/Frame 19.png",
-      uploadedDate: "15 mins ago",
-      views: "139",
-      comments: "22",
-    ),
-    TrendingVideo(
-      title: "How to buy a Tractor",
-      thumbnail: "assets/images/Video.png",
-      uploadedDate: "21 Oct 2021 Monday",
-      views: "250",
-      comments: "35",
-    ),
-    TrendingVideo(
-      title: "How to buy a Crane",
-      thumbnail: "assets/images/Video.png",
-      uploadedDate: "1 day ago",
-      views: "120",
-      comments: "12",
-    ),
-  ];
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<VideoModel> _filterVideos(List<VideoModel> videos) {
+    if (_searchQuery.isEmpty) {
+      return videos;
+    }
+    return videos.where((video) {
+      return video.title.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // filter videos by query
-    final filteredVideos = videos
-        .where((v) =>
-        v.title.toLowerCase().contains(query.toLowerCase().trim()))
-        .toList();
-
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
       appBar: AppBar(
@@ -68,13 +55,15 @@ class _TrendingVideosSearchScreenState extends State<TrendingVideosSearchScreen>
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pop(context);
+            },
             icon: const Icon(Icons.close, color: Color(0xff339D44)),
           ),
           const SizedBox(width: 12),
         ],
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,9 +71,9 @@ class _TrendingVideosSearchScreenState extends State<TrendingVideosSearchScreen>
             /// Search bar
             TextField(
               controller: _searchController,
-              onChanged: (val) {
+              onChanged: (value) {
                 setState(() {
-                  query = val;
+                  _searchQuery = value;
                 });
               },
               style: GoogleFonts.raleway(
@@ -93,7 +82,7 @@ class _TrendingVideosSearchScreenState extends State<TrendingVideosSearchScreen>
                 color: const Color(0xFF292929),
               ),
               decoration: InputDecoration(
-                hintText: "Search Tractor...",
+                hintText: "Search videos...",
                 hintStyle: GoogleFonts.raleway(
                   color: const Color(0xFFB4B4B4),
                   fontSize: 14,
@@ -101,7 +90,8 @@ class _TrendingVideosSearchScreenState extends State<TrendingVideosSearchScreen>
                 ),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFFB4B4B4)),
                 border: OutlineInputBorder(
                   borderSide: const BorderSide(width: 1),
                   borderRadius: BorderRadius.circular(8),
@@ -119,42 +109,42 @@ class _TrendingVideosSearchScreenState extends State<TrendingVideosSearchScreen>
 
             const SizedBox(height: 20),
 
+            /// Video List
+            Expanded(
+              child: StreamProvider.value(
+                value: _videoService.streamAllVideos(),
+                initialData: <VideoModel>[],
+                builder: (context, child) {
+                  final videos = context.watch<List<VideoModel>>();
+                  final filteredVideos = _filterVideos(videos);
 
-            /// Video list
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: filteredVideos.length,
-              itemBuilder: (context, index) {
-                final v = filteredVideos[index];
-                return VideoCard(
-                  title: v.title,
-                  thumbnail: v.thumbnail,
-                  uploadedDate: v.uploadedDate,
-                  views: v.views,
-                  comments: v.comments,
-                );
-              },
+                  if (filteredVideos.isEmpty) {
+                    return Center(
+                      child: Text(
+                        _searchQuery.isEmpty ? "No videos available" : "No videos found",
+                        style: GoogleFonts.raleway(
+                          fontSize: 16,
+                          color: const Color(0xFFB4B4B4),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: filteredVideos.length,
+                    itemBuilder: (context, index) {
+                      final v = filteredVideos[index];
+                      return VideoCard(
+                        video: v,
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
       ),
     );
   }
-}
-
-class TrendingVideo {
-  final String title;
-  final String thumbnail; // local asset ya network image
-  final String uploadedDate; // "15 mins ago" ya "21 Oct 2021 Monday"
-  final String views;
-  final String comments;
-
-  TrendingVideo({
-    required this.title,
-    required this.thumbnail,
-    required this.uploadedDate,
-    required this.views,
-    required this.comments,
-  });
 }
